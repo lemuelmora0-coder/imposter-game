@@ -1,4 +1,10 @@
 {
-    "Science": ["Arduino", "Raspberry Pi", "Capacitor", "Resistor", "Transistor", "Sensor", "Motor", "Battery"],
-    "Custom Category": ["Example Word 1", "Example Word 2", "Example Word 3"]
+    "ST Vincent": [
+        "Sean", "Bella", "Jed", "Mico", "Juliana", "Deneach", "Kian", "Kate", "Rainiel", "Ashley (Bolonias)", "Ashley (Ebuen)",
+        "Kevin", "Andrea", "Lyan", "Lem", "Kristine", "Eze", "Alyssa", "Diane", "Jj", "Ken", "Mhon",
+        "Anica", "Vanessa", "Queen", "Liam", "Janessa", "Louise", "Jumarc", "Trixine", "Ryan", "Shelly",
+        "Loraine", "Bj", "Zairus", "Lara", "Shaq", "Michael", "Ryan", "Casey", "Rhian", "Jannah",
+        "Aj", "Diane", "Matthew", "Pj", "Aaron", "Yanzley", "alliyah", "chloe", "Kurt", "Jane" "Maam Dionisio", 
+        "Maam Greysi", "Maam Airene", "Sir Lance", "Maam Casaclang", "Maam Rose", "Sir GHEL THE GOAT", "Sir Jerome"
+    ]
 }
