@@ -88,7 +88,18 @@
         let impostors = [];
         let decks = JSON.parse(localStorage.getItem('impostee_decks')) || {};
 
-        // INITIALIZE APP AND MUSIC
+    const preinstalledDecks = {
+            "Filipino Memes": "Skusta Clee, Forda Ferson, You're Road, Na-ol, Ssob, Pinoy Big Brother, Marites, Civil Service Exam, 2Joints, Diwata Pares, Boss Mapagmahal, Ivana Alawi, Small Laude, Otlum, Carlos Yulo, Alice Guo, Pura Luka Vega, Toni Fowler, Zeinab Harake, Cong TV, Viy Cortez, Junnie Boy, Team Payaman, Batang Quiapo, Cardo Dalisay, Probinsyano, Kapuso, Kapamilya, Kapatid, KMJS, Ed Caluag, Jessica Soho, Rated K, Korina Sanchez, Noli De Castro, Ted Failon, Vice Ganda, It's Showtime, Eat Bulaga, JoWaPao, Maine Mendoza, Alden Richards, AlDub, KathNiel, LizQuen, JaDine, BarDa, DonBelle, Kyline Alcantara, Andrea Brillantes, Seth Fedelin, Francine Diaz, BINI, SB19, Pantropiko, Gento, Bazinga, Salamat Dok, Tulfo, Raffy Tulfo in Action, Marites University, Ogie Diaz, Xian Gaza, Valentine Rosales, Rendon Labador, Motivation, Galawan, Pa-fall, Ghosting, Gaslighting, Situationship, Delulu, Red Flag, Green Flag, Main Character, Side Character, POV, Plot Twist, Canon Event, Lowkey, Highkey, Flex, Slay, Yas Queen, Bestie, Bhie, Mima, Mars, Kumusta Ka, Pa-mine, Budol, Add to Cart, Shopee, Lazada, TikTok Shop, Flash Sale, 12.12, Free Shipping, COD, Rider.",
+            
+            "Anime": "Naruto, Sasuke, Sakura, Kakashi, Hinata, Itachi, Madara, Luffy, Zoro, Nami, Sanji, Chopper, Robin, Brook, Franky, Jimbei, Goku, Vegeta, Gohan, Piccolo, Frieza, Cell, Majin Buu, Eren Yeager, Mikasa, Armin, Levi, Erwin, Reiner, Tanjiro, Nezuko, Zenitsu, Inosuke, Muzan, Rengoku, Shinobu, Deku, Bakugo, Todoroki, All Might, Shigaraki, Toga, Anya Forger, Loid Forger, Yor Forger, Bond, Saitama, Genos, Boros, Garou, Tatsumaki, Fubuki, Light Yagami, L, Ryuk, Misa, Near, Mello, Edward Elric, Alphonse, Mustang, Winry, Scar, Gon, Killua, Kurapika, Leorio, Hisoka, Chrollo, Rimuru, Milim, Veldora, Shion, Benimaru, Asta, Yuno, Noelle, Yami, Julius, Spike Spiegel, Faye Valentine, Jet Black, Ed, Ein, Shinji Ikari, Rei Ayanami, Asuka, Misato, Kaworu, Yusuke Urameshi, Kuwabara, Kurama, Hiei, Genkai, Sailor Moon, Tuxedo Mask, Kenshin, Sanosuke, Kaoru, Saito, Shishio.",
+            
+            "Daily Things": "Toothbrush, Toothpaste, Soap, Shampoo, Towel, Mirror, Comb, Hair Dryer, Bed, Pillow, Blanket, Curtains, Electric Fan, Aircon, Television, Remote Control, Smartphone, Charger, Powerbank, Earphones, Laptop, Mouse, Keyboard, Desk, Chair, Backpack, Wallet, Keys, Shoes, Slippers, Umbrella, Water Bottle, Mug, Plate, Spoon, Fork, Knife, Frying Pan, Stove, Refrigerator, Microwave, Toaster, Coffee Maker, Rice Cooker, Washing Machine, Hanger, Laundry Basket, Iron, Ironing Board, Vacuum Cleaner, Broom, Dustpan, Mop, Trash Can, Clock, Calendar, Notebook, Pen, Pencil, Eraser, Scissors, Tape, Glue, Calculator, Stapler, Paper, Envelope, Stamps, Books, Glasses, Watch, Ring, Necklace, Earrings, Bracelet, Hat, Jacket, T-shirt, Pants, Socks, Underwear, Belt, Perfume, Deodorant, Lotion, Sunscreen, Alcohol, Face Mask, Vitamins, Medicine, Band-aid, First Aid Kit, Flashlight, Battery, Toolkit, Screwdriver, Hammer, Nails, Ladder."
+        };
+    
+        let decks = JSON.parse(localStorage.getItem('impostee_decks')) || {};
+        // Merge preinstalled into user decks for the session
+        let allDecks = { ...preinstalledDecks, ...decks };
+    
         function initApp() {
             document.getElementById('splash-screen').classList.add('hidden');
             document.getElementById('setup-screen').classList.remove('hidden');
@@ -97,52 +108,54 @@
             bgm.play().catch(e => console.log("Audio Blocked", e));
         }
 
-        window.onload = () => {
-            const dropdown = document.getElementById('saved-decks-dropdown');
-            for (let name in decks) {
-                dropdown.add(new Option(name, name));
-            }
-        };
-
-        function loadDeck() {
-            const name = document.getElementById('saved-decks-dropdown').value;
-            if (decks[name]) {
-                document.getElementById('deck-name').value = name;
-                document.getElementById('custom-words').value = decks[name];
-            }
+ window.onload = () => {
+        const dropdown = document.getElementById('saved-decks-dropdown');
+        for (let name in allDecks) {
+            dropdown.add(new Option(name, name));
         }
+    };
 
-        function startGame() {
-            const name = document.getElementById('deck-name').value;
-            const words = document.getElementById('custom-words').value;
-            const pCount = parseInt(document.getElementById('player-count').value);
-            const iCount = parseInt(document.getElementById('impostor-count').value);
+    function loadDeck() {
+        const name = document.getElementById('saved-decks-dropdown').value;
+        if (allDecks[name]) {
+            document.getElementById('deck-name').value = name;
+            document.getElementById('custom-words').value = allDecks[name];
+        }
+    }
 
-            if (!name || !words || isNaN(pCount)) return alert("Data incomplete!");
-            if (iCount >= pCount - 1) return alert("Too many impostors!");
+    function startGame() {
+        const name = document.getElementById('deck-name').value;
+        const wordsInput = document.getElementById('custom-words').value;
+        const pCount = parseInt(document.getElementById('player-count').value);
+        const iCount = parseInt(document.getElementById('impostor-count').value);
 
-            decks[name] = words;
+        if (!name || !wordsInput || isNaN(pCount)) return alert("Data incomplete!");
+        if (iCount >= pCount - 1) return alert("Too many impostors!");
+
+        // Save only if it's a NEW custom deck (not preinstalled)
+        if (!preinstalledDecks[name]) {
+            decks[name] = wordsInput;
             localStorage.setItem('impostee_decks', JSON.stringify(decks));
-
-            const wordList = words.split(',').map(w => w.trim());
-            const secret = wordList[Math.floor(Math.random() * wordList.length)];
-            
-            let indices = Array.from({length: pCount}, (_, i) => i);
-            impostors = [];
-            for(let i=0; i<iCount; i++) {
-                let randomIdx = Math.floor(Math.random() * indices.length);
-                impostors.push(indices.splice(randomIdx, 1)[0] + 1);
-            }
-
-            players = Array.from({length: pCount}, (_, i) => 
-                impostors.includes(i + 1) ? "IMPOSTOR" : secret
-            );
-
-            document.getElementById('setup-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-            updateUI();
         }
 
+        const wordList = wordsInput.split(',').map(w => w.trim()).filter(w => w.length > 0);
+        const secret = wordList[Math.floor(Math.random() * wordList.length)];
+        
+        let indices = Array.from({length: pCount}, (_, i) => i);
+        impostors = [];
+        for(let i=0; i<iCount; i++) {
+            let randomIdx = Math.floor(Math.random() * indices.length);
+            impostors.push(indices.splice(randomIdx, 1)[0] + 1);
+        }
+
+        players = Array.from({length: pCount}, (_, i) => 
+            impostors.includes(i + 1) ? "IMPOSTOR" : secret
+        );
+
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        updateUI();
+    }
         function updateUI() {
             document.getElementById('player-turn-text').innerText = `UNIT ${currentPlayerIndex + 1} READY`;
             document.getElementById('word-display').innerText = "****";
@@ -188,3 +201,4 @@
     </script>
 </body>
 </html>
+
