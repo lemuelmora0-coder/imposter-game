@@ -33,16 +33,22 @@
         .warning-text { color: var(--warning); font-weight: bold; text-transform: uppercase; animation: blink 1s infinite; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
         .hidden { display: none !important; }
+        
+        /* Splash Screen Style */
+        #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #090A0F; z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center; }
     </style>
 </head>
 <body>
-<div id="splash-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #090A0F; z-index: 100; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-    <h1 style="color: var(--glow); text-shadow: 0 0 15px var(--glow);">ST VINCENT PROTOCOL</h1>
-    <button onclick="initApp()" style="width: 200px;">ENTER SYSTEM</button>
+
+    <div id="splash-screen">
+        <h1 style="color: var(--glow); text-shadow: 0 0 15px var(--glow);">ST VINCENT PROTOCOL</h1>
+        <button onclick="initApp()" style="width: 200px;">ENTER SYSTEM</button>
+    </div>
+
     <div class="stars stars-1"></div>
 
     <div class="content-wrapper">
-        <div id="setup-screen" class="card">
+        <div id="setup-screen" class="card hidden">
             <h2>ST VINCENT, WHO'S THE IMPOSTOR</h2>
             <select id="saved-decks-dropdown" onchange="loadDeck()">
                 <option value="">-- Load Saved Deck --</option>
@@ -64,32 +70,33 @@
         <div id="warning-screen" class="card hidden">
             <h2 class="warning-text">PROTOCOL COMPLETE</h2>
             <p>ALL UNITS HAVE BEEN BRIEFED.</p>
-            <p style="color: #8b949e; font-size: 0.9rem;">PASS THE DEVICE BACK TO THE GROUP.</p>
             <button onclick="finalReveal()" style="background: var(--danger); color: white;">FINAL REVEAL</button>
         </div>
 
         <div id="reveal-screen" class="card hidden">
             <h2 style="color: var(--danger);">/// ANOMALIES DETECTED ///</h2>
-            <p>THE IMPOSTORS WERE:</p>
             <div id="impostor-reveal" class="word-box" style="color: var(--glow); font-size: 1.5rem;">?</div>
             <button onclick="location.reload()">REBOOT SYSTEM</button>
         </div>
     </div>
 
     <audio id="snd-bgm" src="lofibg.mp3" loop></audio>
-    <audio id="snd-reveal" src=""></audio> <script>
+
+    <script>
         let players = [];
         let currentPlayerIndex = 0;
         let impostors = [];
         let decks = JSON.parse(localStorage.getItem('impostee_decks')) || {};
 
+        // INITIALIZE APP AND MUSIC
         function initApp() {
-        document.getElementById('splash-screen').style.display = 'none';
-        const bgm = document.getElementById('snd-bgm');
-        bgm.volume = 0.3;
-        bgm.play().catch(e => console.log("Audio blocked", e));
-        }    
-        
+            document.getElementById('splash-screen').classList.add('hidden');
+            document.getElementById('setup-screen').classList.remove('hidden');
+            const bgm = document.getElementById('snd-bgm');
+            bgm.volume = 0.3;
+            bgm.play().catch(e => console.log("Audio Blocked", e));
+        }
+
         window.onload = () => {
             const dropdown = document.getElementById('saved-decks-dropdown');
             for (let name in decks) {
@@ -111,14 +118,12 @@
             const pCount = parseInt(document.getElementById('player-count').value);
             const iCount = parseInt(document.getElementById('impostor-count').value);
 
-            if (!name || !words || isNaN(pCount)) return alert("Data fields incomplete!");
-            if (iCount >= pCount - 1) return alert("Too many impostors for this unit!");
+            if (!name || !words || isNaN(pCount)) return alert("Data incomplete!");
+            if (iCount >= pCount - 1) return alert("Too many impostors!");
 
-            // Save Deck
             decks[name] = words;
             localStorage.setItem('impostee_decks', JSON.stringify(decks));
 
-            // Logic: Pick multiple unique impostors
             const wordList = words.split(',').map(w => w.trim());
             const secret = wordList[Math.floor(Math.random() * wordList.length)];
             
@@ -132,11 +137,6 @@
             players = Array.from({length: pCount}, (_, i) => 
                 impostors.includes(i + 1) ? "IMPOSTOR" : secret
             );
-
-            // Audio Start
-            const bgm = document.getElementById('snd-bgm');
-            bgm.volume = 0.3;
-            bgm.play().catch(() => {});
 
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('game-screen').classList.remove('hidden');
@@ -157,8 +157,6 @@
         function show() {
             display.innerText = players[currentPlayerIndex];
             display.style.color = players[currentPlayerIndex] === "IMPOSTOR" ? "var(--danger)" : "var(--glow)";
-            const snd = document.getElementById('snd-reveal');
-            if(snd.src) snd.play().catch(()=>{});
         }
         function hide() {
             display.innerText = "****";
@@ -190,5 +188,3 @@
     </script>
 </body>
 </html>
-
-
