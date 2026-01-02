@@ -4,162 +4,141 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>IMPOSTEE: Neural Link</title>
-    <link rel="manifest" href="manifest.json">
     <style>
         :root { --glow: #00d4ff; --bg: #0a0e14; --card: #151d29; --text: #e0e6ed; --danger: #ff4757; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); text-align: center; padding: 20px; overflow-x: hidden; }
-        
-        /* --- CORE STYLES --- */
-        .card { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid #30363d; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: inline-block; width: 90%; max-width: 450px; position: relative; }
-        h2 { color: var(--glow); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; }
-        h3 { color: var(--text); letter-spacing: 1px; }
-        input { background: #0d1117; border: 1px solid #30363d; color: var(--glow); padding: 15px; border-radius: 8px; width: 85%; margin: 10px 0; font-size: 1.1rem; text-align: center; outline: none; transition: 0.3s; }
-        input:focus { border-color: var(--glow); box-shadow: 0 0 10px rgba(0, 212, 255, 0.3); }
-        
-        button { background: var(--glow); color: #000; font-weight: 900; border: none; padding: 18px 30px; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; width: 100%; margin-top: 25px; text-transform: uppercase; letter-spacing: 1.5px; font-size: 1rem; position: relative; overflow: hidden; }
-        button:active { transform: scale(0.98); }
-
-        .word-box { font-size: 2.2rem; font-weight: 900; margin: 30px 0; min-height: 60px; color: var(--danger); text-shadow: 0 0 15px rgba(255, 71, 87, 0.6); letter-spacing: 3px; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg); color: var(--text); text-align: center; padding: 20px; user-select: none; }
+        .card { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid #30363d; display: inline-block; width: 90%; max-width: 450px; }
+        input, select { background: #0d1117; border: 1px solid #30363d; color: var(--glow); padding: 12px; border-radius: 8px; width: 85%; margin: 10px 0; font-size: 1rem; }
+        button { background: var(--glow); color: #000; font-weight: bold; border: none; padding: 15px; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 15px; text-transform: uppercase; }
+        .word-box { font-size: 2.2rem; font-weight: 900; margin: 30px 0; min-height: 60px; color: var(--danger); transition: 0.2s; }
+        .hold-btn { background: #30363d; color: white; padding: 25px; border: 2px dashed var(--glow); border-radius: 15px; cursor: pointer; touch-action: manipulation; }
+        .hold-btn:active { background: var(--glow); color: black; box-shadow: 0 0 20px var(--glow); }
         .hidden { display: none !important; }
-
-        /* --- ANIMATIONS --- */
-        /* 1. Screen Transition Fade In */
-        @keyframesfadeInUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        .fade-in { animation: fadeInUp 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
-
-        /* 2. Text Flicker Reveal Effect */
-        @keyframes flicker { 
-            0% { opacity: 0.1; } 2% { opacity: 1; } 8% { opacity: 0.1; } 9% { opacity: 1; } 
-            12% { opacity: 0.1; } 20% { opacity: 1; } 25% { opacity: 0.3; } 30% { opacity: 1; } 
-            70% { opacity: 0.7; } 72% { opacity: 0.2; } 77% { opacity: 0.9; } 100% { opacity: 1; }
-        }
-        .flicker-text { animation: flicker 0.8s linear forwards; color: var(--glow); text-shadow: 0 0 20px var(--glow); }
-        
-        /* 3. Impostor Reveal Pulse */
-        @keyframes pulse-danger { 0% { transform: scale(1); } 50% { transform: scale(1.1); text-shadow: 0 0 30px var(--danger); } 100% { transform: scale(1); } }
-        .impostor-pulse { animation: pulse-danger 1.5s infinite ease-in-out; color: var(--danger) !important; }
+        .deck-list { text-align: left; margin: 10px 0; font-size: 0.9rem; color: #8b949e; }
     </style>
 </head>
 <body>
 
-    <div id="setup-screen" class="card fade-in">
+    <div id="setup-screen" class="card">
         <h2>/// SYSTEM SETUP ///</h2>
-        <p style="color: #8b949e; margin-bottom: 5px;">UPLOAD DATA DECK (Comma Separated)</p>
-        <input type="text" id="custom-words" value="Lion, Tiger, Bear, Wolf, Fox" autocomplete="off">
-        <p style="color: #8b949e; margin-bottom: 5px; margin-top: 20px;">ACTIVE UNITS (Players)</p>
-        <input type="number" id="player-count" value="3" min="3" max="12">
-        <button onclick="startGame()">INITIALIZE NEURAL LINK</button>
+        <div class="deck-list">LOAD PREVIOUS DECK:</div>
+        <select id="saved-decks-dropdown" onchange="loadDeck()">
+            <option value="">-- New Deck --</option>
+        </select>
+        <p>DECK NAME:</p>
+        <input type="text" id="deck-name" placeholder="e.g. Robotics">
+        <p>WORDS (Comma separated):</p>
+        <input type="text" id="custom-words" placeholder="Word1, Word2, Word3">
+        <button onclick="startGame()">INITIALIZE LINK</button>
     </div>
 
     <div id="game-screen" class="card hidden">
         <h3 id="player-turn-text">UNIT 1 READY</h3>
         <div id="word-display" class="word-box">****</div>
-        <button id="action-btn" onclick="toggleWord()">DECRYPT DATA</button>
+        <div id="hold-trigger" class="hold-btn">HOLD TO DECRYPT</div>
+        <button id="next-btn" class="hidden" onclick="nextPlayer()">DONE & PASS</button>
     </div>
 
     <div id="reveal-screen" class="card hidden">
-        <h2 style="color: var(--danger);">/// CRITICAL FAILURE ///</h2>
-        <p style="font-size: 1.2rem;">THE ANOMALY WAS:</p>
-        <div id="impostor-reveal" class="word-box impostor-pulse">?</div>
-        <button onclick="location.reload()" style="background: var(--card); color: var(--text); border: 2px solid var(--glow);">REBOOT SYSTEM</button>
+        <h2 style="color: var(--danger);">/// ANOMALY DETECTED ///</h2>
+        <div id="impostor-reveal" class="word-box" style="color: var(--glow);">?</div>
+        <button onclick="location.reload()">REBOOT</button>
     </div>
 
-    <audio id="snd-click" src="click.mp3"></audio>
-    
+    <audio id="snd-reveal" src="PASTE_YOUR_LINK_HERE"></audio>
+    <audio id="snd-pass" src="PASTE_YOUR_LINK_HERE"></audio>
+
     <script>
         let players = [];
         let currentPlayerIndex = 0;
-        let showingWord = false;
         let impostorName = "";
+        let decks = JSON.parse(localStorage.getItem('impostee_decks')) || {};
 
-        // Helper to play sounds reliably
-        function playSound(id) { 
-            const audio = document.getElementById(id);
-            audio.currentTime = 0; // Reset sound to start for rapid clicking
-            audio.play().catch(e => console.log("Audio play failed:", e));
-        }
+        // Initialization
+        window.onload = () => {
+            const dropdown = document.getElementById('saved-decks-dropdown');
+            for (let name in decks) {
+                let opt = document.createElement('option');
+                opt.value = name;
+                opt.innerHTML = name;
+                dropdown.appendChild(opt);
+            }
+        };
 
-        // Helper to switch screens with animation
-        function switchScreen(hideId, showId) {
-            document.getElementById(hideId).classList.add('hidden');
-            const showEl = document.getElementById(showId);
-            showEl.classList.remove('hidden');
-            // Trigger reflow to restart animation
-            void showEl.offsetWidth; 
-            showEl.classList.add('fade-in');
+        function loadDeck() {
+            const name = document.getElementById('saved-decks-dropdown').value;
+            if (decks[name]) {
+                document.getElementById('deck-name').value = name;
+                document.getElementById('custom-words').value = decks[name];
+            }
         }
 
         function startGame() {
-            playSound('snd-click');
-            const wordInput = document.getElementById('custom-words').value;
-            const wordDeck = wordInput.split(',').filter(w => w.trim().length > 0).map(w => w.trim());
-            const playerCount = parseInt(document.getElementById('player-count').value);
-            
-            if(wordDeck.length < 2) { alert("Need at least 2 words!"); return; }
+            const name = document.getElementById('deck-name').value;
+            const words = document.getElementById('custom-words').value;
+            const count = parseInt(prompt("Number of Players?", "3"));
 
-            const secretWord = wordDeck[Math.floor(Math.random() * wordDeck.length)];
-            const impostorIndex = Math.floor(Math.random() * playerCount);
-            impostorName = `UNIT ${impostorIndex + 1}`;
+            if (!name || !words) return alert("Enter deck details!");
 
-            players = [];
-            for (let i = 0; i < playerCount; i++) {
-                // Impostor sees "ANOMALY" in red, others see the word in blue
-                players.push(i === impostorIndex ? {word: "ANOMALY", isImpostor: true} : {word: secretWord, isImpostor: false});
-            }
+            // Save deck to LocalStorage
+            decks[name] = words;
+            localStorage.setItem('impostee_decks', JSON.stringify(decks));
 
-            switchScreen('setup-screen', 'game-screen');
-            updateTurnState();
+            const wordList = words.split(',').map(w => w.trim());
+            const secret = wordList[Math.floor(Math.random() * wordList.length)];
+            const impIdx = Math.floor(Math.random() * count);
+            impostorName = `UNIT ${impIdx + 1}`;
+
+            players = Array.from({length: count}, (_, i) => 
+                i === impIdx ? "IMPOSTOR" : secret
+            );
+
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            updateUI();
         }
 
-        function updateTurnState() {
-            const display = document.getElementById('word-display');
-            const btn = document.getElementById('action-btn');
-            
-            display.classList.remove('flicker-text'); // Reset animation
-            
-            if (currentPlayerIndex < players.length) {
-                document.getElementById('player-turn-text').innerText = `UNIT ${currentPlayerIndex + 1} READY`;
-                display.innerText = "****";
-                display.style.color = "var(--danger)"; // Hidden state color
-                btn.innerText = "DECRYPT DATA";
-                showingWord = false;
-            } else {
-                // End game State
-                playSound('snd-click');
+        function updateUI() {
+            if (currentPlayerIndex >= players.length) {
+                document.getElementById('game-screen').classList.add('hidden');
+                document.getElementById('reveal-screen').classList.remove('hidden');
                 document.getElementById('impostor-reveal').innerText = impostorName;
-                switchScreen('game-screen', 'reveal-screen');
+                return;
             }
+            document.getElementById('player-turn-text').innerText = `UNIT ${currentPlayerIndex + 1}`;
+            document.getElementById('word-display').innerText = "****";
+            document.getElementById('hold-trigger').classList.remove('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
         }
 
-        function toggleWord() {
-            const display = document.getElementById('word-display');
-            const btn = document.getElementById('action-btn');
+        // HOLD TO REVEAL LOGIC
+        const trigger = document.getElementById('hold-trigger');
+        const display = document.getElementById('word-display');
+        const nextBtn = document.getElementById('next-btn');
 
-            if (!showingWord) {
-                // REVEAL BLOCK
-                playSound('snd-click');
-                const playerData = players[currentPlayerIndex];
-                
-                display.innerText = playerData.word;
-                // Different colors for impostor vs crew
-                display.style.color = playerData.isImpostor ? "var(--danger)" : "var(--glow)";
-                
-                // Add flicker animation
-                display.classList.remove('flicker-text');
-                void display.offsetWidth; // Trigger reflow
-                display.classList.add('flicker-text');
+        function showWord() {
+            display.innerText = players[currentPlayerIndex];
+            display.style.color = players[currentPlayerIndex] === "IMPOSTOR" ? "var(--danger)" : "var(--glow)";
+            document.getElementById('snd-reveal').play();
+        }
 
-                btn.innerText = "HIDE & PASS DEVICE";
-                showingWord = true;
-            } else {
-                // HIDE BLOCK
-                playSound('snd-click'); // Sound for passing phone
-                currentPlayerIndex++;
-                updateTurnState();
-            }
+        function hideWord() {
+            display.innerText = "****";
+            display.style.color = "var(--danger)";
+            trigger.classList.add('hidden');
+            nextBtn.classList.remove('hidden');
+        }
+
+        trigger.addEventListener('mousedown', showWord);
+        trigger.addEventListener('touchstart', (e) => { e.preventDefault(); showWord(); });
+        trigger.addEventListener('mouseup', hideWord);
+        trigger.addEventListener('touchend', hideWord);
+
+        function nextPlayer() {
+            document.getElementById('snd-pass').play();
+            currentPlayerIndex++;
+            updateUI();
         }
     </script>
 </body>
 </html>
-
-
