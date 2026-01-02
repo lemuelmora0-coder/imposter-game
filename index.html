@@ -1,12 +1,19 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Impostee Custom Game</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMPOSTEE: Neural Link</title>
+    <link rel="manifest" href="manifest.json">
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f0f2f5; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: inline-block; width: 80%; max-width: 400px; }
-        button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin: 10px; }
-        input { padding: 8px; margin: 5px; width: 80%; }
+        :root { --glow: #00d4ff; --bg: #0a0e14; --card: #151d29; --text: #e0e6ed; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); text-align: center; padding: 20px; }
+        .card { background: var(--card); padding: 30px; border-radius: 20px; border: 1px solid #30363d; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: inline-block; width: 90%; max-width: 450px; }
+        h2 { color: var(--glow); text-transform: uppercase; letter-spacing: 2px; }
+        input { background: #0d1117; border: 1px solid #30363d; color: white; padding: 12px; border-radius: 8px; width: 85%; margin: 10px 0; }
+        button { background: var(--glow); color: #000; font-weight: bold; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; transition: 0.3s; width: 100%; margin-top: 20px; text-transform: uppercase; }
+        button:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--glow); }
+        .word-box { font-size: 2rem; font-weight: bold; margin: 30px 0; min-height: 60px; color: #ff4757; text-shadow: 0 0 10px rgba(255, 71, 87, 0.5); }
         .hidden { display: none; }
     </style>
 </head>
@@ -14,39 +21,50 @@
 
     <div id="setup-screen" class="card">
         <h2>Impostee Game</h2>
-        <p>Enter words for your deck (comma separated):</p>
-        <input type="text" id="custom-words" value="Apple, Banana, Orange, Mango, Grape">
-        <br>
-        <p>Number of Players:</p>
+        <p>Custom Deck (comma separated)</p>
+        <input type="text" id="custom-words" value="Arduino, Raspberry Pi, ESP32, Sensor, Motor">
+        <p>Player Count</p>
         <input type="number" id="player-count" value="3" min="3">
-        <br>
-        <button onclick="startGame()">Start Game</button>
+        <button onclick="startGame()">Initialize Link</button>
     </div>
 
     <div id="game-screen" class="card hidden">
-        <h3 id="player-turn-text">Player 1's Turn</h3>
-        <div id="word-display" style="font-size: 24px; font-weight: bold; margin: 20px 0; color: #d9534f;">****</div>
-        <button id="action-btn" onclick="toggleWord()">Show Word</button>
+        <h3 id="player-turn-text">Player 1</h3>
+        <div id="word-display" class="word-box">****</div>
+        <button id="action-btn" onclick="toggleWord()">Reveal Secret</button>
     </div>
+
+    <div id="reveal-screen" class="card hidden">
+        <h2>Game Over</h2>
+        <p>The Impostor Was:</p>
+        <div id="impostor-reveal" class="word-box" style="color: var(--glow);">?</div>
+        <button onclick="location.reload()">New Mission</button>
+    </div>
+
+    <audio id="snd-click" src="https://actions.google.com/sounds/v1/foley/button_click.ogg"></audio>
+    <audio id="snd-reveal" src="https://actions.google.com/sounds/v1/science_fiction/glitch_low_energy.ogg"></audio>
 
     <script>
         let players = [];
         let currentPlayerIndex = 0;
         let showingWord = false;
+        let impostorName = "";
+
+        function playSound(id) { document.getElementById(id).play(); }
 
         function startGame() {
+            playSound('snd-click');
             const wordInput = document.getElementById('custom-words').value;
             const wordDeck = wordInput.split(',').map(w => w.trim());
             const playerCount = parseInt(document.getElementById('player-count').value);
             
-            // Pick a random word from the deck
             const secretWord = wordDeck[Math.floor(Math.random() * wordDeck.length)];
             const impostorIndex = Math.floor(Math.random() * playerCount);
+            impostorName = `Player ${impostorIndex + 1}`;
 
-            // Assign words to players
             players = [];
             for (let i = 0; i < playerCount; i++) {
-                players.push(i === impostorIndex ? "YOU ARE THE IMPOSTOR" : secretWord);
+                players.push(i === impostorIndex ? "IMPOSTOR" : secretWord);
             }
 
             document.getElementById('setup-screen').classList.add('hidden');
@@ -56,14 +74,16 @@
 
         function updateTurn() {
             if (currentPlayerIndex < players.length) {
-                document.getElementById('player-turn-text').innerText = `Player ${currentPlayerIndex + 1}'s Turn`;
+                document.getElementById('player-turn-text').innerText = `Player ${currentPlayerIndex + 1}`;
                 document.getElementById('word-display').innerText = "****";
-                document.getElementById('action-btn').innerText = "Show Word";
+                document.getElementById('action-btn').innerText = "Reveal Secret";
                 showingWord = false;
             } else {
-                document.getElementById('player-turn-text').innerText = "Game Started!";
-                document.getElementById('word-display').innerText = "Discuss and find the impostor!";
-                document.getElementById('action-btn').classList.add('hidden');
+                // End game reveal
+                document.getElementById('game-screen').classList.add('hidden');
+                document.getElementById('reveal-screen').classList.remove('hidden');
+                document.getElementById('impostor-reveal').innerText = impostorName;
+                playSound('snd-reveal');
             }
         }
 
@@ -72,8 +92,9 @@
             const btn = document.getElementById('action-btn');
 
             if (!showingWord) {
+                playSound('snd-click');
                 display.innerText = players[currentPlayerIndex];
-                btn.innerText = "Hide & Next Player";
+                btn.innerText = "Hide & Pass";
                 showingWord = true;
             } else {
                 currentPlayerIndex++;
